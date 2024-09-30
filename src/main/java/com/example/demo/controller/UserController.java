@@ -19,7 +19,7 @@ public class UserController {
     @Autowired
     private UserDetailsServiceImpl userDetailsServiceImpl;
 
-    @GetMapping("/api/Users") // Define your endpoint
+    @GetMapping("/api/users") // Define your endpoint
     public List<User> getUsers() {
         List<User> users = userRepository.findAll();
         return users;

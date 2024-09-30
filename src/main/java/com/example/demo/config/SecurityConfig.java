@@ -11,10 +11,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig {
+public class SecurityConfig implements WebMvcConfigurer {
 
     private final UserDetailsService userDetailsService;
 
@@ -32,7 +34,7 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize ->
                         authorize
-                                .requestMatchers("/**", "/register","/authenticate").permitAll()  // Open login and register endpoints
+                                .requestMatchers("/**", "/register","/authenticate","/process-file").permitAll()  // Open login and register endpoints
                                 .anyRequest().authenticated()
                 )
                 .formLogin(form-> form.disable())
@@ -44,5 +46,13 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
+    }
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**") // Allow all endpoints
+                .allowedOrigins("http://localhost:4200") // Frontend URL
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // Allowed methods
+                .allowedHeaders("*") // Allow all headers
+                .allowCredentials(true); // Allow credentials if needed
     }
 }
