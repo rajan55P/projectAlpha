@@ -1,6 +1,6 @@
 package com.example.demo.security;
 
-import com.example.demo.model.User;
+import com.example.demo.model.Customer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -8,9 +8,9 @@ import java.util.Collection;
 import java.util.Collections;
 
 public class UserDetailsImpl implements UserDetails {
-    private final User user;
+    private final Customer user;
 
-    public UserDetailsImpl(User user) {
+    public UserDetailsImpl(Customer user) {
         this.user = user;
     }
 
@@ -27,7 +27,7 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public String getUsername() {
-        return user.getUsername();
+        return user.getName();
     }
 
     @Override
@@ -51,7 +51,7 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     // Optionally, you can also expose the user entity here if needed.
-    public User getUser() {
+    public Customer getUser() {
         return user;
     }
 }

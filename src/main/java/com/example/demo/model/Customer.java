@@ -4,23 +4,26 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "users") // Optional: specify the table name if different
-public class User {
+public class Customer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String username;
+    private String name;
 
     private String password;
 
+    private String email;
+
     // Default constructor
-    public User() {}
+    public Customer() {}
 
     // Parameterized constructor
-    public User(String username, String password) {
-        this.username = username;
+    public Customer(String name, String password, String email) {
+        this.name = name;
         this.password = password;
+        this.email = email;
     }
 
     // Getters and Setters
@@ -32,12 +35,12 @@ public class User {
         this.id = id;
     }
 
-    public String getUsername() {
-        return username;
+    public String getName() {
+        return name;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getPassword() {
@@ -46,5 +49,13 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }
