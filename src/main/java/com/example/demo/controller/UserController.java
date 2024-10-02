@@ -28,7 +28,7 @@ public class UserController {
         return customers;
     }
 
-    @PostMapping("/api/register")
+    @PostMapping("/register")
     public ResponseEntity<?> registerUsers(@RequestBody Customer requestUser) {
         // Register users into the database
         System.out.println("user details ="+requestUser+

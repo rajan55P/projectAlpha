@@ -57,6 +57,11 @@ public class StudentController {
         }
     }
 
+    @CrossOrigin(origins = "http://localhost:4200")
+    @GetMapping("/students")
+    public List<Student> getAllStudents() {
+        return studentService.getAllStudents();
+    }
 
     private void generateExcelFile(List<Student> students, String filePath) throws IOException {
         try {

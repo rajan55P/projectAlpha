@@ -1,11 +1,14 @@
 package com.example.demo.model;
 
 import jakarta.persistence.*;
+import org.springframework.lang.NonNull;
+
 import java.time.LocalDate;
 
 @Entity
 @Table(name = "students")
 public class Student {
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

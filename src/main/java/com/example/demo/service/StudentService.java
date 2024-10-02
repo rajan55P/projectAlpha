@@ -25,6 +25,7 @@ public class StudentService {
 
         for (int i = 0; i < count; i++) {
             Student student = new Student();
+            student.setStudentId(random.nextLong());
             student.setFirstName(randomString(3, 8));
             student.setLastName(randomString(3, 8));
             student.setDateOfBirth(generateRandomDate());
@@ -58,5 +59,9 @@ public class StudentService {
     // Method to save students to the database
     public void saveStudents(List<Student> students) {
         studentRepository.saveAll(students);
+    }
+
+    public List<Student> getAllStudents(){
+        return studentRepository.findAll();
     }
 }
