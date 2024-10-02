@@ -5,6 +5,7 @@ import com.example.demo.service.StudentService;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,7 +13,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +24,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 
 @RestController
-@RequestMapping("/api")
+@CrossOrigin(origins = "http://localhost:4200")
 public class StudentController {
 
     private static final Logger logger = LoggerFactory.getLogger(StudentController.class);
@@ -32,25 +35,28 @@ public class StudentController {
     public StudentController(StudentService studentService) {
         this.studentService = studentService;
     }
-
     @CrossOrigin(origins = "http://localhost:4200")
     @PostMapping("/generate/{count}")
-    public ResponseEntity<String> generateStudents(@PathVariable("count") int count) throws IOException {
+    public ResponseEntity<?> generateStudents(@PathVariable("count") int count) throws IOException {
         try {
             List<Student> students = studentService.generateStudents(count);
-            studentService.saveStudents(students);
+            // studentService.saveStudents(students);
 
             // Generate Excel file
             String filePath = "/Users/apple/Downloads/dataProcessing/projectAlpha/students.xlsx";
             generateExcelFile(students, filePath);
 
-            return ResponseEntity.ok("Generated " + count + " student records and saved to Excel.");
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Generated " + count + " student records and saved to Excel.");
+            System.out.println("Inside the method");
+            return ResponseEntity.status(HttpStatus.OK).body(response);
 
         }
         catch (Exception e){
             return ResponseEntity.ok("Error occurred error="+e);
         }
     }
+
 
     private void generateExcelFile(List<Student> students, String filePath) throws IOException {
         try {

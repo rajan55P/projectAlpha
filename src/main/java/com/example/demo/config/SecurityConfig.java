@@ -33,7 +33,7 @@ public class SecurityConfig implements WebMvcConfigurer {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize ->
-                        authorize.requestMatchers("/login","/register","/authenticate","/process-file").permitAll()  // Open login and register endpoints
+                        authorize.requestMatchers("/login","/register","/authenticate","/generate/*","/processFile").permitAll()  // Open login and register endpoints
                                 .anyRequest().authenticated()
                 ).sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Stateless session management
