@@ -1,8 +1,12 @@
 package com.example.demo.service;
 
 import com.example.demo.model.Student;
+import com.example.demo.repository.StudentRepository;
 import com.monitorjbl.xlsx.StreamingReader;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.streaming.SXSSFSheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +23,8 @@ import java.util.List;
 public class FileProcessingService {
 
     private static final int BATCH_SIZE = 1000;  // Set batch size for processing chunks
+    @Autowired
+    private StudentRepository studentRepository;
 
     @Async
     public void processExcelAndSaveToCSV(String excelFilePath, String csvFilePath) throws IOException {
@@ -154,31 +160,50 @@ public class FileProcessingService {
 
 
 
-    // Method to read and process Excel data into a list of students
-    public List<Student> readAndProcessExcelFile(String excelFilePath) throws IOException {
+
+    @Async
+    public void readAndProcessExcelFile(String excelFilePath) throws IOException {
+        System.out.println("Inside readAndProcessExcelFile");
         List<Student> students = new ArrayList<>();
         try (InputStream is = new FileInputStream(excelFilePath);
              Workbook workbook = StreamingReader.builder()
-                     .rowCacheSize(100)
+                     .rowCacheSize(500)
                      .bufferSize(4096)
                      .open(is)) {
-            for (Sheet sheet : workbook) {
-                for (int rowIndex = 1; rowIndex <= sheet.getLastRowNum(); rowIndex++) { // Start from the second row
-                    Row row = sheet.getRow(rowIndex);
+            Sheet firstSheet = workbook.getSheetAt(0);
+            for (Row row : firstSheet) {
+                for (int rowIndex = 1; rowIndex <= 1000000; rowIndex++) { // Start from the second row
+                    System.out.println("Processing row " + rowIndex);
                     if (row != null) {
                         Student student = extractStudentFromRow(row);
                         if (student != null) {
                             students.add(student);
+                            System.out.println("Student added count " + rowIndex);
                         }
+                    }
+
+                    // Save students in batches of 100
+                    if (students.size() == 500) {
+                        studentRepository.saveAll(students); // Save the current batch
+                        System.out.println("Saved batch of 100 students");
+                        students.clear(); // Clear the list for the next batch
                     }
                 }
             }
+
+            // Save any remaining students that didn't fill a full batch
+            if (!students.isEmpty()) {
+                studentRepository.saveAll(students);
+                System.out.println("Saved remaining students count: " + students.size());
+            }
+
         } catch (Exception e) {
             System.err.println("Error in readAndProcessExcelFile: " + e.getMessage());
             e.printStackTrace(); // Consider using a logging framework
         }
-        return students;
+        System.out.println("Student processing completed");
     }
+
 
     // Extracts Student data from an Excel row
     private Student extractStudentFromRow(Row row) {

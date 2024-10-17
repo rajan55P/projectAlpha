@@ -22,8 +22,7 @@ import java.util.*;
 @CrossOrigin(origins = "http://localhost:4200")
 public class FileProcessingController {
 
-    @Autowired
-    private StudentRepository studentRepository;
+
     @Autowired
     private FileProcessingService fileProcessingService;
 
@@ -62,10 +61,12 @@ public class FileProcessingController {
             System.out.println("Inside uploadData");
 
             // Step 1: Read the Excel file
-            List<Student> students = fileProcessingService.readAndProcessExcelFile(excelFilePath);
+            fileProcessingService.readAndProcessExcelFile(excelFilePath);
+
+//            List<Student> students = fileProcessingService.readAndProcessExcelFile(excelFilePath);
 
             // Step 2: Save the student records to the database
-            studentRepository.saveAll(students);
+//            studentRepository.saveAll(students);
 
             response.put("message", "Student data uploaded and processed successfully.");
 
