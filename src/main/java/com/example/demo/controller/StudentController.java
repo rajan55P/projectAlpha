@@ -1,8 +1,11 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.Student;
+import com.example.demo.model.Task;
 import com.example.demo.service.StudentService;
+import com.example.demo.service.TaskService;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,11 +19,10 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 
 @RestController
@@ -32,29 +34,28 @@ public class StudentController {
     @Autowired
     private final StudentService studentService;
 
+
+    @Autowired
+    private TaskService taskService;
+
     public StudentController(StudentService studentService) {
         this.studentService = studentService;
     }
     @CrossOrigin(origins = "http://localhost:4200")
     @PostMapping("/generate/{count}")
-    public ResponseEntity<?> generateStudents(@PathVariable("count") int count) throws IOException {
-        try {
-            List<Student> students = studentService.generateStudents(count);
-            // studentService.saveStudents(students);
+    public ResponseEntity<?> generateStudents(@PathVariable("count") int count) {
 
-            // Generate Excel file
-            String filePath = "/Users/apple/Downloads/dataProcessing/projectAlpha/students.xlsx";
-            generateExcelFile(students, filePath);
+        // Generate a unique task ID for this request
+        Task task = taskService.createTask();
 
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Generated " + count + " student records and saved to Excel.");
-            System.out.println("Inside the method");
-            return ResponseEntity.status(HttpStatus.OK).body(response);
+        // Start the asynchronous task
+        studentService.generateStudentsAsync(count, task.getTaskId());
+        // Return task ID to the client for status tracking
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Generation started for " + count + " students.");
+        response.put("taskId", task.getTaskId());
 
-        }
-        catch (Exception e){
-            return ResponseEntity.ok("Error occurred error="+e);
-        }
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
 
     @CrossOrigin(origins = "http://localhost:4200")
@@ -63,45 +64,18 @@ public class StudentController {
         return studentService.getAllStudents();
     }
 
-    private void generateExcelFile(List<Student> students, String filePath) throws IOException {
-        try {
-            Workbook workbook = new XSSFWorkbook();
-            Sheet sheet = workbook.createSheet("Students");
+    @CrossOrigin(origins = "http://localhost:4200")
+    @PostMapping("/task/{taskId}")
+    public ResponseEntity<?> getTaskStatus(@PathVariable("count") int count) {
 
-            // Create header row
-            Row headerRow = sheet.createRow(0);
-            String[] headers = {"Student ID", "First Name", "Last Name", "DOB", "Class", "Score"};
-            for (int i = 0; i < headers.length; i++) {
-                Cell cell = headerRow.createCell(i);
-                cell.setCellValue(headers[i]);
-            }
-
-            // Populate data rows
-            int rowIdx = 1;
-            for (Student student : students) {
-                Row row = sheet.createRow(rowIdx++);
-                row.createCell(0).setCellValue(student.getStudentId());
-                row.createCell(1).setCellValue(student.getFirstName());
-                row.createCell(2).setCellValue(student.getLastName());
-                row.createCell(3).setCellValue(student.getDateOfBirth().toString()); // assuming DOB is a LocalDate
-                row.createCell(4).setCellValue(student.getClassName());
-                row.createCell(5).setCellValue(student.getScore());
-            }
-
-            // Create directories if they do not exist
-            Files.createDirectories(Paths.get(filePath).getParent());
-
-            // Write to Excel file
-            try (FileOutputStream fos = new FileOutputStream(filePath)) {
-                workbook.write(fos);
-            }
-            workbook.close();
-        } catch (IOException e) {
-            logger.error("Error occurred while generating Excel file: {}", e.getMessage());
-            // Optional: rethrow the exception or handle it as needed
-        } catch (Exception e) {
-            logger.error("An unexpected error occurred: {}", e.getMessage());
-            // Optional: rethrow the exception or handle it as needed
-        }
+        // Generate a unique task ID for this request
+        Task task = taskService.createTask();
+        // Start the asynchronous task
+        studentService.generateStudentsAsync(count, task.getTaskId());
+        // Return task ID to the client for status tracking
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Generation started for " + count + " students.");
+        response.put("taskId", task.getTaskId());
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
 }

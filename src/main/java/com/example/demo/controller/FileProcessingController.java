@@ -1,8 +1,10 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.Student;
+import com.example.demo.model.Task;
 import com.example.demo.repository.StudentRepository;
 import com.example.demo.service.FileProcessingService;
+import com.example.demo.service.TaskService;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -14,10 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:4200")
@@ -27,6 +26,10 @@ public class FileProcessingController {
     private StudentRepository studentRepository;
     @Autowired
     private FileProcessingService fileProcessingService;
+
+    @Autowired
+    private TaskService taskService;
+
     @CrossOrigin(origins = "http://localhost:4200")
     @PostMapping("/processFile")
     public ResponseEntity<?> processFile() {
@@ -34,9 +37,12 @@ public class FileProcessingController {
         try {
             String excelFilePath = "/Users/apple/Downloads/dataProcessing/projectAlpha/students.xlsx";
             String csvFilePath ="/Users/apple/Downloads/dataProcessing/projectAlpha/students.csv";
+            Task task = taskService.createTask();
 
             fileProcessingService.processExcelAndSaveToCSV(excelFilePath, csvFilePath);
             response.put("message", "File processed and saved to CSV successfully!");
+            response.put("taskId", task.getTaskId());
+
 
             return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (Exception e) {
