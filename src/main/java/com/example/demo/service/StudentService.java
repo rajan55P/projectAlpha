@@ -2,18 +2,16 @@ package com.example.demo.service;
 
 import com.example.demo.model.Student;
 import com.example.demo.repository.StudentRepository;
-import com.monitorjbl.xlsx.StreamingReader;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.*;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -92,6 +90,7 @@ public class StudentService {
 
                 // Process students in batches
                 for (int i = 0; i < count; i += batchSize) {
+                    System.out.println("Working on " + i + "th batch");
                     int limit = Math.min(batchSize, count - i);
                     List<Student> studentsBatch = generateStudents(limit);
                     rowCount = writeStudentsToSheet(sheet, studentsBatch, rowCount);
@@ -106,6 +105,7 @@ public class StudentService {
             taskStatus.put(taskId, "failed: " + e.getMessage());
         }
 
+        System.out.println("Returning After create the full excel file ");
         return CompletableFuture.completedFuture(taskId);
     }
 
@@ -123,9 +123,21 @@ public class StudentService {
             row.createCell(3).setCellValue(student.getScore());
             row.createCell(4).setCellValue(student.getDateOfBirth());
             row.createCell(5).setCellValue(student.getClassName());
+            System.out.println("Writing Students for row = "+rowNum);
         }
         return rowNum;
     }
 
+    public Page<Student> getFilteredStudents(int page, int size, Long studentId, String className, Integer startScore, Integer endScore, LocalDate startDate, LocalDate endDate) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        // Call the repository to retrieve filtered and paginated data
+        return studentRepository.findFilteredStudents(studentId, className, startScore, endScore, startDate, endDate, pageable);
+    }
+
+    public List<Student> getFilteredStudentsWithoutPagination(Long studentId, String className, Integer startScore, Integer endScore, LocalDate startDate, LocalDate endDate) {
+        // Call the repository to retrieve all data with applied filters
+        return studentRepository.findFilteredStudentsWithoutPagination(studentId, className, startScore, endScore, startDate, endDate);
+    }
 
 }

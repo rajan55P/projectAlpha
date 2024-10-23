@@ -8,6 +8,8 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +18,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +65,32 @@ public class StudentController {
     @GetMapping("/students")
     public List<Student> getAllStudents() {
         return studentService.getAllStudents();
+    }
+
+    @GetMapping("/paginatedStudents")
+    public Page<Student> getFilteredStudents(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "100") int size,
+            @RequestParam(required = false) Long studentId,
+            @RequestParam(required = false) String className,
+            @RequestParam(required = false) Integer startScore,
+            @RequestParam(required = false) Integer endScore,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+        return studentService.getFilteredStudents(page, size, studentId, className, startScore, endScore, startDate, endDate);
+    }
+
+    @GetMapping("/students/export")
+    public List<Student> exportAllStudents(
+            @RequestParam(required = false) Long studentId,
+            @RequestParam(required = false) String className,
+            @RequestParam(required = false) Integer startScore,
+            @RequestParam(required = false) Integer endScore,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+        return studentService.getFilteredStudentsWithoutPagination(studentId, className, startScore, endScore, startDate, endDate);
     }
 
     @CrossOrigin(origins = "http://localhost:4200")

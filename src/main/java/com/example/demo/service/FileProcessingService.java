@@ -28,6 +28,7 @@ public class FileProcessingService {
 
     @Async
     public void processExcelAndSaveToCSV(String excelFilePath, String csvFilePath) throws IOException {
+        int countFlushes =0;
         try (InputStream is = new FileInputStream(excelFilePath);
              Workbook workbook = StreamingReader.builder()
                      .rowCacheSize(100)    // Number of rows to keep in memory
@@ -57,6 +58,7 @@ public class FileProcessingService {
                     // Flush data to CSV file after processing a batch
                     if (row.getRowNum() % BATCH_SIZE == 0) {
                         csvWriter.flush();
+                        System.out.println("Csv writer flushed count =" +countFlushes++);
                     }
                 }
                 csvWriter.flush();  // Flush the remaining data after processing the sheet
@@ -156,24 +158,24 @@ public class FileProcessingService {
         }
     }
 
-
-
-
-
-
     @Async
     public void readAndProcessExcelFile(String excelFilePath) throws IOException {
         System.out.println("Inside readAndProcessExcelFile");
         List<Student> students = new ArrayList<>();
         try (InputStream is = new FileInputStream(excelFilePath);
              Workbook workbook = StreamingReader.builder()
-                     .rowCacheSize(500)
+                     .rowCacheSize(100000)
                      .bufferSize(4096)
                      .open(is)) {
-            Sheet firstSheet = workbook.getSheetAt(0);
-            for (Row row : firstSheet) {
-                for (int rowIndex = 1; rowIndex <= 1000000; rowIndex++) { // Start from the second row
-                    System.out.println("Processing row " + rowIndex);
+                Sheet firstSheet = workbook.getSheetAt(0);
+                int rowIndex = 0 ;
+                for (Row row : firstSheet)
+                {
+                    rowIndex++;  // Keep track of the current row index
+//                    System.out.println("Processing row " + rowIndex);
+                    if (rowIndex == 1) {
+                        continue;  // Skip the first row (header)
+                    }
                     if (row != null) {
                         Student student = extractStudentFromRow(row);
                         if (student != null) {
@@ -181,14 +183,12 @@ public class FileProcessingService {
                             System.out.println("Student added count " + rowIndex);
                         }
                     }
-
                     // Save students in batches of 100
-                    if (students.size() == 500) {
+                    if (students.size() == 100000) {
                         studentRepository.saveAll(students); // Save the current batch
                         System.out.println("Saved batch of 100 students");
                         students.clear(); // Clear the list for the next batch
                     }
-                }
             }
 
             // Save any remaining students that didn't fill a full batch
